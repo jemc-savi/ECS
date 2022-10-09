@@ -1,0 +1,3 @@
+:struct ECS.Entity
+  :let id U64
+  :new _new(@id)

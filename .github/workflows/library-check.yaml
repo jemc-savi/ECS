@@ -27,7 +27,7 @@ jobs:
         include:
           - { os: ubuntu-latest, shell: bash }
           - { os: macos-latest, shell: bash }
-          - { os: windows-latest, shell: 'wsl-bash {0}' }
+          # - { os: windows-latest, shell: 'wsl-bash {0}' } # TODO: fix windows
     runs-on: ${{ matrix.os }}
     defaults:
       run:

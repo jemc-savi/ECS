@@ -1,0 +1,11 @@
+// TODO: Documentation
+:struct ECS.World
+  :let _ptr _FFI.WorldRef
+  :new
+    @_ptr = _FFI.ecs_init
+
+  :fun _info: _FFI.ecs_get_world_info(@_ptr)
+
+  // TODO: Documentation
+  :fun target_fps: @_info.target_fps
+  :fun ref "target_fps="(fps): _FFI.ecs_set_target_fps(@_ptr, fps)

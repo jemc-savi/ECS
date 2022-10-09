@@ -1,0 +1,13 @@
+:class ECS.World.Spec
+  :is Spec
+  :const describes: "ECS.World"
+
+  :it "can get and set the target FPS value"
+    world = ECS.World.new
+    assert: world.target_fps == 0
+
+    world.target_fps = 60
+    assert: world.target_fps == 60
+
+    world.target_fps = 123.5
+    assert: world.target_fps == 123.5
