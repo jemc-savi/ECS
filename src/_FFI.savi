@@ -1,0 +1,462 @@
+
+:ffi_link_c_files (
+  "../vendor/flecs.c"
+)
+
+:module _FFI
+  :: Create a new world.
+  ::
+  :: A world manages all the ECS data and supporting infrastructure.
+  :: Applications must have at least one world. Entities, component and system
+  :: handles are local to a world and should not be shared between worlds.
+  ::
+  :: This operation creates a world with all builtin modules loaded.
+  ::
+  :: Returns the new world.
+  :ffi ecs_init _FFI.WorldRef
+
+  :: Delete a world.
+  ::
+  :: This operation deletes the world, and everything it contains.
+  ::
+  :: Returns zero if successful, non-zero if failed.
+  :ffi ecs_fini(world _FFI.WorldRef) I32
+
+  :: Returns whether the world is being deleted.
+  :ffi ecs_is_fini(world _FFI.WorldRef) Bool
+
+  :: Returns world info.
+  ::
+  :: This pointer will remain valid for as long as the world is valid.
+  :ffi ecs_get_world_info(world _FFI.WorldRef) _FFI.WorldInfo
+
+  :: Set target frames per second (FPS) for application.
+  ::
+  :: Setting the target FPS ensures that ecs_progress is not invoked faster than
+  :: the specified FPS. When enabled, ecs_progress tracks the time passed since
+  :: the last invocation, and sleeps the remaining time of the frame (if any).
+  ::
+  :: This feature ensures systems are ran at a consistent interval, as well as
+  :: conserving CPU time by not running systems more often than required.
+  ::
+  :: Note that ecs_progress only sleeps if there is time left in the frame. Both
+  :: time spent in flecs as time spent outside of flecs are taken into
+  :: account.
+  :ffi ecs_set_target_fps(world _FFI.WorldRef, fps F32) None
+
+  :: Get the current scope (set by ecs_set_scope).
+  ::
+  :: If no scope is set, this operation will return 0.
+  :ffi ecs_get_scope(world _FFI.WorldRef) ECS.Entity
+
+  :: Set the current scope.
+  ::
+  :: This operation sets the scope of the current stage to the provided entity.
+  :: As a result new entities will be created in this scope, and lookups will be
+  :: relative to the provided scope.
+  ::
+  :: Returns the the previous scope.
+  ::
+  :: It is considered good practice to restore the scope to the old value.
+  :ffi ecs_set_scope(
+    world _FFI.WorldRef
+    scope ECS.Entity
+  ) ECS.Entity
+
+  :: Find or create an entity.
+  ::
+  :: This operation creates a new entity or modifies an existing one.
+  :: When a name is set in the `name` field and `entity` is not set,
+  :: the operation will first attempt to find an existing entity by that name.
+  :: If no entity with that name can be found, it will be created.
+  ::
+  :: If both a `name` and `entity` handle are provided, the operation will
+  :: check if the entity name matches with the provided name. If the names
+  :: do not match, the function will fail and return 0.
+  ::
+  :: If an `id` to a non-existing entity is provided, that entity will become
+  :: alive.
+  ::
+  :: See the documentation of `_FFI.EntityDesc` for more details.
+  :ffi ecs_entity_init(
+    world _FFI.WorldRef
+    desc CPointer(_FFI.EntityDesc)
+  ) ECS.Entity
+
+  :: Make a pair id.
+  ::
+  :: This function is equivalent to using the ecs_pair macro, and is added for
+  :: convenience to make it easier for non C/C++ bindings to work with pairs.
+  :ffi ecs_make_pair(
+    first ECS.Entity
+    second ECS.Entity
+  ) U64
+
+  :: Get the name of an entity.
+  ::
+  :: This will return the name stored in (EcsIdentifier, EcsName).
+  :ffi ecs_get_name(
+    world _FFI.WorldRef
+    entity ECS.Entity
+  ) CPointer(U8)
+
+  :: Lookup an entity by name.
+  ::
+  :: Returns an entity that matches the specified name, or 0 if not found.
+  ::
+  :: Only looks for entities in the current scope (root if no scope provided).
+  :ffi ecs_lookup(
+    world _FFI.WorldRef
+    name CPointer(U8)
+  ) ECS.Entity
+
+  :: Lookup an entity from a path.
+  ::
+  :: Lookup an entity from a provided path, relative to the provided parent.
+  :: The operation will use the provided separator to tokenize the path
+  :: expression. If the provided path contains the prefix, the search will
+  :: start from the root.
+  ::
+  :: If the entity is not found in the provided parent, the operation will
+  :: continue to search in the parent of the parent, until the root is reached.
+  :: If the entity is still not found, the lookup will search in the flecs.core
+  :: scope. If the entity is not found there either, the function returns 0.
+  :ffi ecs_lookup_path_w_sep(
+    world _FFI.WorldRef
+    parent ECS.Entity
+    path CPointer(U8)
+    sep CPointer(U8)
+    prefix CPointer(U8)
+    recursive Bool
+  ) ECS.Entity
+
+  :: Find or create a component.
+  ::
+  :: This operation creates a new component, or finds an existing one. The find
+  :: or create behavior is the same as `ecs_entity_init`.
+  ::
+  :: When an existing component is found, the size and alignment are verified
+  :: with the provided values. If they do not match, the operation will fail.
+  ::
+  :: See the documentation of `_FFI.ComponentDesc` for more details.
+  :ffi ecs_component_init(
+    world _FFI.WorldRef
+    desc _FFI.ComponentDesc
+  ) ECS.Entity
+
+:alias _FFI.WorldRef: CPointer(_FFI.WorldRef.Opaque)
+:struct _FFI.WorldRef.Opaque
+
+:alias _FFI.QueryRef: CPointer(_FFI.QueryRef.Opaque)
+:struct _FFI.QueryRef.Opaque
+
+:alias _FFI.TableRef: CPointer(_FFI.TableRef.Opaque)
+:struct _FFI.TableRef.Opaque
+
+:alias _FFI.TypeRef: CPointer(_FFI.TypeRef.Opaque)
+:struct _FFI.TypeRef.Opaque
+
+:alias _FFI.EntityRefRef: CPointer(_FFI.EntityRefRef.Opaque)
+:struct _FFI.EntityRefRef.Opaque
+
+:: Type that contains information about the world.
+:class _FFI.WorldInfo
+  // TODO: Bring this first field back once Savi
+  // has been updated to not carry type descriptors
+  // as the first (hidden) field of every class.
+  // :: Last issued component entity id.
+  // :var last_component_id U64: 0
+
+  :: Last issued entity id.
+  :var last_id U64: 0
+
+  :: First allowed entity id.
+  :var min_id U64: 0
+
+  :: Last allowed entity id.
+  :var max_id U64: 0
+
+  :: Raw delta time (no time scaling).
+  :var delta_time_raw F32: 0
+
+  :: Time passed to or computed by ecs_progress.
+  :var delta_time F32: 0
+
+  :: Time scale applied to delta_time.
+  :var time_scale F32: 0
+
+  :: Target fps.
+  :var target_fps F32: 0
+
+  :: Total time spent processing a frame.
+  :var frame_time_total F32: 0
+
+  :: Total time spent in systems.
+  :var system_time_total F32: 0
+
+  :: Total time spent notifying observers.
+  :var emit_time_total F32: 0
+
+  :: Total time spent in merges.
+  :var merge_time_total F32: 0
+
+  :: Time elapsed in simulation.
+  :var world_time_total F32: 0
+
+  :: Time elapsed in simulation (no scaling).
+  :var world_time_total_raw F32: 0
+
+  :: Total number of frames.
+  :var frame_count_total I32: 0
+
+  :: Total number of merges.
+  :var merge_count_total I32: 0
+
+  :: Total number of times a new id was created.
+  :var id_create_total I32: 0
+
+  :: Total number of times an id was deleted.
+  :var id_delete_total I32: 0
+
+  :: Total number of times a table was created.
+  :var table_create_total I32: 0
+
+  :: Total number of times a table was deleted.
+  :var table_delete_total I32: 0
+
+  :: Total number of pipeline builds.
+  :var pipeline_build_count_total I32: 0
+
+  :: Total number of systems ran in last frame.
+  :var systems_ran_frame I32: 0
+
+  :: Total number of times observer was invoked.
+  :var observers_ran_frame I32: 0
+
+  :: Number of ids in the world (excluding wildcards).
+  :var id_count I32: 0
+
+  :: Number of tag (no data) ids in the world.
+  :var tag_id_count I32: 0
+
+  :: Number of component (data) ids in the world.
+  :var component_id_count I32: 0
+
+  :: Number of pair ids in the world.
+  :var pair_id_count I32: 0
+
+  :: Number of wildcard ids.
+  :var wildcard_id_count I32: 0
+
+  :: Number of tables.
+  :var table_count I32: 0
+
+  :: Number of tag-only tables.
+  :var tag_table_count I32: 0
+
+  :: Number of tables with trivial components (no lifecycle callbacks).
+  :var trivial_table_count I32: 0
+
+  :: Number of tables without entities.
+  :var empty_table_count I32: 0
+
+  :: Total number of table records (entries in table caches).
+  :var table_record_count I32: 0
+
+  :: Total number of table storages.
+  :var table_storage_count I32: 0
+
+  :: Number of add commands processed.
+  :var cmd_add_count I32: 0
+
+  :: Number of remove commands processed.
+  :var cmd_remove_count I32: 0
+
+  :: Number of delete commands processed.
+  :var cmd_delete_count I32: 0
+
+  :: Number of clear commands processed.
+  :var cmd_clear_count I32: 0
+
+  :: Number of set commands processed.
+  :var cmd_set_count I32: 0
+
+  :: Number of get_mut/emplace commands processed.
+  :var cmd_get_mut_count I32: 0
+
+  :: Number of modified commands processed.
+  :var cmd_modified_count I32: 0
+
+  :: Number of other commands processed.
+  :var cmd_other_count I32: 0
+
+  :: Number of commands discarded, happens when entity is no longer alive when running the command.
+  :var cmd_discard_count I32: 0
+
+  :: Number of entities for which commands were batched.
+  :var cmd_batched_entity_count I32: 0
+
+  :: Number of commands batched.
+  :var cmd_batched_command_count I32: 0
+
+  :: Value set by ecs_set_name_prefix. Used to remove library prefixes of symbol
+  :: names (such as Ecs, ecs_) when registering them as names.
+  :var name_prefix: CPointer(U8).null
+
+:: Type used for creating or referring to existing entities.
+:: See `_FFI.ecs_entity_init`.
+:class _FFI.EntityDesc
+  :var _canary I32: 0 // (not used in public flecs API)
+
+  :: Set to refer to an existing entity (optional).
+  :var id U64: 0
+
+  :: Name of the entity. If no entity id is provided, an entity with this name
+  :: will be looked up first. When an entity id is provided, the name will be
+  :: verified with the existing entity.
+  :var name CPointer(U8): CPointer(U8).null
+
+  :: Optional custom separator for hierarchical names.
+  :var sep CPointer(U8): CPointer(U8).null
+
+  :: Optional, used for identifiers relative to root.
+  :var root_sep CPointer(U8): CPointer(U8).null
+
+  :: Optional entity symbol. A symbol is an unscoped identifier that can be
+  :: used to lookup an entity. The primary use case for this is to associate
+  :: the entity with a language identifier, such as a type or function name,
+  :: where these identifiers differ from the name they are registered with
+  :: in flecs. For example, C type "EcsPosition" might be registered as
+  :: "flecs.components.transform.Position", with the symbol of "EcsPosition".
+  :var symbol CPointer(U8): CPointer(U8).null
+
+  :: When set to true, a low id (typically reserved for components) will be
+  :: used to create the entity, if no id is specified.
+  :var use_low_id Bool: False
+
+  // TODO: Use a static array of size ECS_ID_CACHE_SIZE (32),
+  // when/if static arrays are supported in the language
+  :var add_0 U64:  0 :: An id to add to the new or existing entity.
+  :var add_1 U64:  0 :: An id to add to the new or existing entity.
+  :var add_2 U64:  0 :: An id to add to the new or existing entity.
+  :var add_3 U64:  0 :: An id to add to the new or existing entity.
+  :var add_4 U64:  0 :: An id to add to the new or existing entity.
+  :var add_5 U64:  0 :: An id to add to the new or existing entity.
+  :var add_6 U64:  0 :: An id to add to the new or existing entity.
+  :var add_7 U64:  0 :: An id to add to the new or existing entity.
+  :var add_8 U64:  0 :: An id to add to the new or existing entity.
+  :var add_9 U64:  0 :: An id to add to the new or existing entity.
+  :var add_10 U64: 0 :: An id to add to the new or existing entity.
+  :var add_11 U64: 0 :: An id to add to the new or existing entity.
+  :var add_12 U64: 0 :: An id to add to the new or existing entity.
+  :var add_13 U64: 0 :: An id to add to the new or existing entity.
+  :var add_14 U64: 0 :: An id to add to the new or existing entity.
+  :var add_15 U64: 0 :: An id to add to the new or existing entity.
+  :var add_16 U64: 0 :: An id to add to the new or existing entity.
+  :var add_17 U64: 0 :: An id to add to the new or existing entity.
+  :var add_18 U64: 0 :: An id to add to the new or existing entity.
+  :var add_19 U64: 0 :: An id to add to the new or existing entity.
+  :var add_20 U64: 0 :: An id to add to the new or existing entity.
+  :var add_21 U64: 0 :: An id to add to the new or existing entity.
+  :var add_22 U64: 0 :: An id to add to the new or existing entity.
+  :var add_23 U64: 0 :: An id to add to the new or existing entity.
+  :var add_24 U64: 0 :: An id to add to the new or existing entity.
+  :var add_25 U64: 0 :: An id to add to the new or existing entity.
+  :var add_26 U64: 0 :: An id to add to the new or existing entity.
+  :var add_27 U64: 0 :: An id to add to the new or existing entity.
+  :var add_28 U64: 0 :: An id to add to the new or existing entity.
+  :var add_29 U64: 0 :: An id to add to the new or existing entity.
+  :var add_30 U64: 0 :: An id to add to the new or existing entity.
+  :var add_31 U64: 0 :: An id to add to the new or existing entity.
+
+  :: String expression with components to add.
+  :var add_expr CPointer(U8): CPointer(U8).null
+
+:: Type used for creating or referring to existing components.
+:: See `_FFI.ecs_component_init`.
+:class _FFI.ComponentDesc
+  :var _canary I32: 0 // (not used in public flecs API)
+
+  :: Set to refer to an existing component (optional).
+  :var id U64: 0
+
+  :: Parameters for type (size, hooks, ...)
+  :copies _FFI.TypeInfo
+
+:: Type that contains component information (passed to ctors/dtors/...)
+:class _FFI.TypeInfo
+
+  :: Size of type.
+  :let size USize: 0
+
+  :: Alignment of type.
+  :let alignment USize: 0
+
+  :: Type hooks.
+  :let hooks: _FFI.TypeHooks.new
+
+  :: Handle to component (do not set).
+  :let component ECS.Entity: ECS.Entity._new(0)
+
+  :: Type name.
+  :let name: CPointer(U8).null
+
+:: Type that contains component lifecycle callbacks.
+:struct _FFI.TypeHooks
+  :new
+
+  :: Ctor.
+  :let ctor: CPointer(None).null
+
+  :: Dtor.
+  :let dtor: CPointer(None).null
+
+  :: Copy assignment.
+  :let copy: CPointer(None).null
+
+  :: Move assignment.
+  :let move: CPointer(None).null
+
+  :: Ctor + copy
+  :let copy_ctor: CPointer(None).null
+
+  :: Ctor + move
+  :let move_ctor: CPointer(None).null
+
+  :: Ctor + move + dtor (or move_ctor + dtor).
+  :: This combination is typically used when a component is moved from one
+  :: location to a new location, like when it is moved to a new table. If
+  :: not set explicitly it will be derived from other callbacks.
+  :let ctor_move_dtor: CPointer(None).null
+
+  :: Move + dtor.
+  :: This combination is typically used when a component is moved from one
+  :: location to an existing location, like what happens during a remove. If
+  :: not set explicitly it will be derived from other callbacks.
+  :let move_dtor: CPointer(None).null
+
+  :: Callback that is invoked when an instance of a component is added. This
+  :: callback is invoked before triggers are invoked.
+  :let on_add: CPointer(None).null
+
+  :: Callback that is invoked when an instance of the component is set. This
+  :: callback is invoked before triggers are invoked, and enable the component
+  :: to respond to changes on itself before others can.
+  :let on_set: CPointer(None).null
+
+  :: Callback that is invoked when an instance of the component is removed.
+  :: This callback is invoked after the triggers are invoked, and before the
+  :: destructor is invoked.
+  :let on_remove: CPointer(None).null
+
+  :: User defined context
+  :let ctx: CPointer(None).null
+
+  :: Language binding context
+  :let binding_ctx: CPointer(None).null
+
+  :: Callback to free ctx
+  :let ctx_free: CPointer(None).null
+
+  :: Callback to free binding_ctx
+  :let binding_ctx_free: CPointer(None).null
