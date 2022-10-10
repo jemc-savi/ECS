@@ -37,5 +37,19 @@
     size USize
     alignment USize
   ) ECS.Entity
-    desc = _FFI.ComponentDesc.new(0, name.cstring, size.i32, alignment.i32)
+    entity_desc = _FFI.EntityDesc.new(
+      0 // find or create id
+      name.cstring
+      CPointer(U8).null // sep
+      CPointer(U8).null // root_sep
+      CPointer(U8).null // symbol
+      True // use_low_id
+    )
+    entity = _FFI.ecs_entity_init(@_ptr, stack_address_of_variable entity_desc)
+
+    desc = _FFI.ComponentDesc.new(
+      entity.id
+      size.i32
+      alignment.i32
+    )
     _FFI.ecs_component_init(@_ptr, stack_address_of_variable desc)
