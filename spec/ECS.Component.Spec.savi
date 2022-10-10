@@ -1,0 +1,34 @@
+// TODO: These should likely be structs, not classes?
+:class _Examples.Age
+  :is ECS.Component.Data(_Examples.Age) // TODO: use `@` to refer to self
+  :fun non data_size USize: 16 // TODO: automatically calculate size
+  :fun non data_alignment USize: 16 // TODO: automatically calculate alignment
+
+  :let years U64
+  :new "[]"(@years)
+
+:class ECS.Component.Spec
+  :is Spec
+  :const describes: "ECS.Component"
+
+  :it "can be idempotently registered in a given world"
+    world = ECS.World.new
+    age_1 = _Examples.Age.component(world)
+    age_2 = _Examples.Age.component(world)
+
+    assert: age_1.world === world
+    assert: age_2.world === world
+    assert: age_1.id == age_2.id
+
+  :it "can set, get, and remove component data on an entity"
+    world = ECS.World.new
+    age = _Examples.Age.component(world)
+
+    alice = world.entity("Alice")
+    assert error: age.of!(alice)
+
+    age.set(alice, _Examples.Age[99])
+    assert: age.of!(alice).years == 99
+
+    age.remove(alice)
+    assert error: age.of!(alice)
