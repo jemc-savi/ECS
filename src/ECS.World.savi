@@ -19,3 +19,14 @@
 
   // TODO: Documentation
   :fun ref progress(delta_time F32 = 0): _FFI.ecs_progress(@_ptr, delta_time)
+
+  // TODO: Documentation
+  :fun "[]!"(name String) ECS.Entity
+    entity = _FFI.ecs_lookup(@_ptr, name.cstring)
+    error! if entity.id.is_zero
+    entity
+
+  // TODO: Documentation
+  :fun ref entity(name String) ECS.Entity
+    desc = _FFI.EntityDesc.new(0, name.cstring)
+    _FFI.ecs_entity_init(@_ptr, stack_address_of_variable desc)
