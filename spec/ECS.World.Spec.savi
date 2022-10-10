@@ -2,6 +2,16 @@
   :is Spec
   :const describes: "ECS.World"
 
+  :it "can tell the total number of frames that have elapsed"
+    world = ECS.World.new
+    assert: world.frame_count_total == 0
+
+    assert: world.progress
+    assert: world.frame_count_total == 1
+
+    assert: world.progress
+    assert: world.frame_count_total == 2
+
   :it "can get and set the target FPS value"
     world = ECS.World.new
     assert: world.target_fps == 0

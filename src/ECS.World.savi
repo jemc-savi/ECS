@@ -9,3 +9,9 @@
   // TODO: Documentation
   :fun target_fps: @_info.target_fps
   :fun ref "target_fps="(fps): _FFI.ecs_set_target_fps(@_ptr, fps)
+
+  // TODO: Documentation
+  :fun frame_count_total: @_info.frame_count_total
+
+  // TODO: Documentation
+  :fun ref progress(delta_time F32 = 0): _FFI.ecs_progress(@_ptr, delta_time)
