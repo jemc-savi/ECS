@@ -336,22 +336,22 @@
 
 :: Type used for creating or referring to existing entities.
 :: See `_FFI.ecs_entity_init`.
-:class _FFI.EntityDesc
-  :var _canary I32: 0 // (not used in public flecs API)
+:struct _FFI.EntityDesc
+  :let _canary I32 // (not used in public flecs API)
 
   :: Set to refer to an existing entity (optional).
-  :var id U64: 0
+  :let id U64
 
   :: Name of the entity. If no entity id is provided, an entity with this name
   :: will be looked up first. When an entity id is provided, the name will be
   :: verified with the existing entity.
-  :var name CPointer(U8): CPointer(U8).null
+  :let name CPointer(U8)
 
   :: Optional custom separator for hierarchical names.
-  :var sep CPointer(U8): CPointer(U8).null
+  :let sep CPointer(U8)
 
   :: Optional, used for identifiers relative to root.
-  :var root_sep CPointer(U8): CPointer(U8).null
+  :let root_sep CPointer(U8)
 
   :: Optional entity symbol. A symbol is an unscoped identifier that can be
   :: used to lookup an entity. The primary use case for this is to associate
@@ -359,49 +359,93 @@
   :: where these identifiers differ from the name they are registered with
   :: in flecs. For example, C type "EcsPosition" might be registered as
   :: "flecs.components.transform.Position", with the symbol of "EcsPosition".
-  :var symbol CPointer(U8): CPointer(U8).null
+  :let symbol CPointer(U8)
 
   :: When set to true, a low id (typically reserved for components) will be
   :: used to create the entity, if no id is specified.
-  :var use_low_id Bool: False
+  :let use_low_id Bool
 
   // TODO: Use a static array of size ECS_ID_CACHE_SIZE (32),
   // when/if static arrays are supported in the language
-  :var add_0 U64:  0 :: An id to add to the new or existing entity.
-  :var add_1 U64:  0 :: An id to add to the new or existing entity.
-  :var add_2 U64:  0 :: An id to add to the new or existing entity.
-  :var add_3 U64:  0 :: An id to add to the new or existing entity.
-  :var add_4 U64:  0 :: An id to add to the new or existing entity.
-  :var add_5 U64:  0 :: An id to add to the new or existing entity.
-  :var add_6 U64:  0 :: An id to add to the new or existing entity.
-  :var add_7 U64:  0 :: An id to add to the new or existing entity.
-  :var add_8 U64:  0 :: An id to add to the new or existing entity.
-  :var add_9 U64:  0 :: An id to add to the new or existing entity.
-  :var add_10 U64: 0 :: An id to add to the new or existing entity.
-  :var add_11 U64: 0 :: An id to add to the new or existing entity.
-  :var add_12 U64: 0 :: An id to add to the new or existing entity.
-  :var add_13 U64: 0 :: An id to add to the new or existing entity.
-  :var add_14 U64: 0 :: An id to add to the new or existing entity.
-  :var add_15 U64: 0 :: An id to add to the new or existing entity.
-  :var add_16 U64: 0 :: An id to add to the new or existing entity.
-  :var add_17 U64: 0 :: An id to add to the new or existing entity.
-  :var add_18 U64: 0 :: An id to add to the new or existing entity.
-  :var add_19 U64: 0 :: An id to add to the new or existing entity.
-  :var add_20 U64: 0 :: An id to add to the new or existing entity.
-  :var add_21 U64: 0 :: An id to add to the new or existing entity.
-  :var add_22 U64: 0 :: An id to add to the new or existing entity.
-  :var add_23 U64: 0 :: An id to add to the new or existing entity.
-  :var add_24 U64: 0 :: An id to add to the new or existing entity.
-  :var add_25 U64: 0 :: An id to add to the new or existing entity.
-  :var add_26 U64: 0 :: An id to add to the new or existing entity.
-  :var add_27 U64: 0 :: An id to add to the new or existing entity.
-  :var add_28 U64: 0 :: An id to add to the new or existing entity.
-  :var add_29 U64: 0 :: An id to add to the new or existing entity.
-  :var add_30 U64: 0 :: An id to add to the new or existing entity.
-  :var add_31 U64: 0 :: An id to add to the new or existing entity.
+  :let add_0 U64  :: An id to add to the new or existing entity.
+  :let add_1 U64  :: An id to add to the new or existing entity.
+  :let add_2 U64  :: An id to add to the new or existing entity.
+  :let add_3 U64  :: An id to add to the new or existing entity.
+  :let add_4 U64  :: An id to add to the new or existing entity.
+  :let add_5 U64  :: An id to add to the new or existing entity.
+  :let add_6 U64  :: An id to add to the new or existing entity.
+  :let add_7 U64  :: An id to add to the new or existing entity.
+  :let add_8 U64  :: An id to add to the new or existing entity.
+  :let add_9 U64  :: An id to add to the new or existing entity.
+  :let add_10 U64 :: An id to add to the new or existing entity.
+  :let add_11 U64 :: An id to add to the new or existing entity.
+  :let add_12 U64 :: An id to add to the new or existing entity.
+  :let add_13 U64 :: An id to add to the new or existing entity.
+  :let add_14 U64 :: An id to add to the new or existing entity.
+  :let add_15 U64 :: An id to add to the new or existing entity.
+  :let add_16 U64 :: An id to add to the new or existing entity.
+  :let add_17 U64 :: An id to add to the new or existing entity.
+  :let add_18 U64 :: An id to add to the new or existing entity.
+  :let add_19 U64 :: An id to add to the new or existing entity.
+  :let add_20 U64 :: An id to add to the new or existing entity.
+  :let add_21 U64 :: An id to add to the new or existing entity.
+  :let add_22 U64 :: An id to add to the new or existing entity.
+  :let add_23 U64 :: An id to add to the new or existing entity.
+  :let add_24 U64 :: An id to add to the new or existing entity.
+  :let add_25 U64 :: An id to add to the new or existing entity.
+  :let add_26 U64 :: An id to add to the new or existing entity.
+  :let add_27 U64 :: An id to add to the new or existing entity.
+  :let add_28 U64 :: An id to add to the new or existing entity.
+  :let add_29 U64 :: An id to add to the new or existing entity.
+  :let add_30 U64 :: An id to add to the new or existing entity.
+  :let add_31 U64 :: An id to add to the new or existing entity.
 
   :: String expression with components to add.
-  :var add_expr CPointer(U8): CPointer(U8).null
+  :let add_expr CPointer(U8)
+
+  // TODO: A better way to initialize a struct - likely with a key-value syntax.
+  :new (
+    @id = 0
+    @name = CPointer(U8).null
+    @sep = CPointer(U8).null
+    @root_sep = CPointer(U8).null
+    @symbol = CPointer(U8).null
+    @use_low_id = False
+    @add_expr = CPointer(U8).null
+    @add_0 = 0
+    @add_1 = 0
+    @add_2 = 0
+    @add_3 = 0
+    @add_4 = 0
+    @add_5 = 0
+    @add_6 = 0
+    @add_7 = 0
+    @add_8 = 0
+    @add_9 = 0
+    @add_10 = 0
+    @add_11 = 0
+    @add_12 = 0
+    @add_13 = 0
+    @add_14 = 0
+    @add_15 = 0
+    @add_16 = 0
+    @add_17 = 0
+    @add_18 = 0
+    @add_19 = 0
+    @add_20 = 0
+    @add_21 = 0
+    @add_22 = 0
+    @add_23 = 0
+    @add_24 = 0
+    @add_25 = 0
+    @add_26 = 0
+    @add_27 = 0
+    @add_28 = 0
+    @add_29 = 0
+    @add_30 = 0
+    @add_31 = 0
+  )
+    @_canary = 0
 
 :: Type used for creating or referring to existing components.
 :: See `_FFI.ecs_component_init`.

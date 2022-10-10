@@ -2,6 +2,16 @@
   :is Spec
   :const describes: "ECS.World"
 
+  :it "can allocate an entity and retrieve the same entity by name"
+    world = ECS.World.new
+    foo = world.entity("Foo")
+
+    assert: world["Foo"]!.id == foo.id
+    assert error: world["Bar"]!
+
+    assert: world.entity("Foo").id == foo.id
+    assert: world.entity("Bar").id != foo.id
+
   :it "can signal that a quit is desired"
     world = ECS.World.new
     assert: world.should_quit == False
