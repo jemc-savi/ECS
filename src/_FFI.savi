@@ -475,12 +475,12 @@
 
   :new (
     @id
-    @name
     @size
     @alignment
     @hooks = _FFI.TypeHooks.new
   )
     @_canary = 0
+    @name = CPointer(U8).null
     @component = ECS.Entity._new(0)
 
 :: Type that contains component information (passed to ctors/dtors/...)
