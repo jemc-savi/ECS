@@ -2,6 +2,16 @@
   :is Spec
   :const describes: "ECS.World"
 
+  :it "can signal that a quit is desired"
+    world = ECS.World.new
+    assert: world.should_quit == False
+    assert: world.progress == True
+
+    world.quit
+
+    assert: world.should_quit == True
+    assert: world.progress == False
+
   :it "can tell the total number of frames that have elapsed"
     world = ECS.World.new
     assert: world.frame_count_total == 0

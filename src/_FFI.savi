@@ -25,6 +25,15 @@
   :: Returns whether the world is being deleted.
   :ffi ecs_is_fini(world _FFI.WorldRef) Bool
 
+  :: Signal exit
+  ::
+  :: This operation signals that the application should quit. It will cause
+  :: `ecs_progress` to return false.
+  :ffi ecs_quit(world _FFI.WorldRef) None
+
+  :: Returns whether a quit has been signaled.
+  :ffi ecs_should_quit(world _FFI.WorldRef) Bool
+
   :: Returns world info.
   ::
   :: This pointer will remain valid for as long as the world is valid.
