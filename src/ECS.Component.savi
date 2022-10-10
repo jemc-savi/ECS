@@ -1,0 +1,49 @@
+
+:trait ECS.Component.Data(T ECS.Component.Data(T))
+  :fun non data_size USize
+  :fun non data_alignment USize
+  :fun non component(world ECS.World)
+    ECS.Component(T)._new(
+      world
+      world._component_entity(
+        (reflection_of_type T).string
+        16 // TODO: @data_size
+        16 // TODO: @data_alignment
+      )
+    )
+
+:struct ECS.Component(T ECS.Component.Data(T))
+  :let world ECS.World
+  :let entity ECS.Entity
+  :new _new(@world, @entity)
+
+  :fun id: @entity.id
+
+  :fun of!(entity ECS.Entity)
+    value = @_get(@world._ptr, entity, @entity.id)
+    error! if _FFI.Cast(T, CPointer(None)).pointer(value).is_null
+    value
+
+  :fun ref set(entity ECS.Entity, value T)
+    @_set(@world._ptr, entity, @entity.id, T.data_size, value)
+    value
+
+  :fun ref remove(entity ECS.Entity)
+    _FFI.ecs_remove_id(@world._ptr, entity, @entity.id)
+    None
+
+  :ffi _get(
+    world _FFI.WorldRef
+    entity ECS.Entity
+    component_id U64
+  ) T
+    :foreign_name ecs_get_id
+
+  :ffi _set(
+    world _FFI.WorldRef
+    entity ECS.Entity
+    component_id U64
+    size USize
+    ptr T
+  ) ECS.Entity
+    :foreign_name ecs_set_id

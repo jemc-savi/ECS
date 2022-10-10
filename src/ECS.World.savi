@@ -30,3 +30,12 @@
   :fun ref entity(name String) ECS.Entity
     desc = _FFI.EntityDesc.new(0, name.cstring)
     _FFI.ecs_entity_init(@_ptr, stack_address_of_variable desc)
+
+  // TODO: Documentation
+  :fun ref _component_entity(
+    name String
+    size USize
+    alignment USize
+  ) ECS.Entity
+    desc = _FFI.ComponentDesc.new(0, name.cstring, size.i32, alignment.i32)
+    _FFI.ecs_component_init(@_ptr, stack_address_of_variable desc)

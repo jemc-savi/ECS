@@ -3,6 +3,11 @@
   "../vendor/flecs.c"
 )
 
+:module _FFI.Cast(A, B)
+  :: An FFI-only utility function for bit-casting type A to B.
+  :ffi pointer(input A) B
+    :foreign_name savi_cast_pointer
+
 :module _FFI
   :: Create a new world.
   ::
@@ -150,8 +155,18 @@
   :: See the documentation of `_FFI.ComponentDesc` for more details.
   :ffi ecs_component_init(
     world _FFI.WorldRef
-    desc _FFI.ComponentDesc
+    desc CPointer(_FFI.ComponentDesc)
   ) ECS.Entity
+
+  :: Remove a (component) id from an entity.
+  ::
+  :: This operation removes a single (component) id to an entity. If the entity
+  :: does not have the id, this operation has no side effects.
+  :ffi ecs_remove_id(
+    world _FFI.WorldRef
+    entity ECS.Entity
+    id U64
+  ) None
 
   :: Progress a world.
   ::
@@ -449,89 +464,123 @@
 
 :: Type used for creating or referring to existing components.
 :: See `_FFI.ecs_component_init`.
-:class _FFI.ComponentDesc
-  :var _canary I32: 0 // (not used in public flecs API)
+:struct _FFI.ComponentDesc
+  :let _canary I32 // (not used in public flecs API)
 
   :: Set to refer to an existing component (optional).
-  :var id U64: 0
+  :let id U64
 
   :: Parameters for type (size, hooks, ...)
   :copies _FFI.TypeInfo
 
+  :new (
+    @id
+    @name
+    @size
+    @alignment
+    @hooks = _FFI.TypeHooks.new
+  )
+    @_canary = 0
+    @component = ECS.Entity._new(0)
+
 :: Type that contains component information (passed to ctors/dtors/...)
-:class _FFI.TypeInfo
+:struct _FFI.TypeInfo
 
   :: Size of type.
-  :let size USize: 0
+  :let size I32
 
   :: Alignment of type.
-  :let alignment USize: 0
+  :let alignment I32
 
   :: Type hooks.
-  :let hooks: _FFI.TypeHooks.new
+  :let hooks _FFI.TypeHooks
 
   :: Handle to component (do not set).
-  :let component ECS.Entity: ECS.Entity._new(0)
+  :let component ECS.Entity
 
   :: Type name.
-  :let name: CPointer(U8).null
+  :let name CPointer(U8)
+
+  :new (
+    @name
+    @size
+    @alignment
+    @hooks = _FFI.TypeHooks.new
+  )
+    @component = ECS.Entity._new(0)
 
 :: Type that contains component lifecycle callbacks.
 :struct _FFI.TypeHooks
-  :new
-
   :: Ctor.
-  :let ctor: CPointer(None).null
+  :let ctor CPointer(None)
 
   :: Dtor.
-  :let dtor: CPointer(None).null
+  :let dtor CPointer(None)
 
   :: Copy assignment.
-  :let copy: CPointer(None).null
+  :let copy CPointer(None)
 
   :: Move assignment.
-  :let move: CPointer(None).null
+  :let move CPointer(None)
 
   :: Ctor + copy
-  :let copy_ctor: CPointer(None).null
+  :let copy_ctor CPointer(None)
 
   :: Ctor + move
-  :let move_ctor: CPointer(None).null
+  :let move_ctor CPointer(None)
 
   :: Ctor + move + dtor (or move_ctor + dtor).
   :: This combination is typically used when a component is moved from one
   :: location to a new location, like when it is moved to a new table. If
   :: not set explicitly it will be derived from other callbacks.
-  :let ctor_move_dtor: CPointer(None).null
+  :let ctor_move_dtor CPointer(None)
 
   :: Move + dtor.
   :: This combination is typically used when a component is moved from one
   :: location to an existing location, like what happens during a remove. If
   :: not set explicitly it will be derived from other callbacks.
-  :let move_dtor: CPointer(None).null
+  :let move_dtor CPointer(None)
 
   :: Callback that is invoked when an instance of a component is added. This
   :: callback is invoked before triggers are invoked.
-  :let on_add: CPointer(None).null
+  :let on_add CPointer(None)
 
   :: Callback that is invoked when an instance of the component is set. This
   :: callback is invoked before triggers are invoked, and enable the component
   :: to respond to changes on itself before others can.
-  :let on_set: CPointer(None).null
+  :let on_set CPointer(None)
 
   :: Callback that is invoked when an instance of the component is removed.
   :: This callback is invoked after the triggers are invoked, and before the
   :: destructor is invoked.
-  :let on_remove: CPointer(None).null
+  :let on_remove CPointer(None)
 
   :: User defined context
-  :let ctx: CPointer(None).null
+  :let ctx CPointer(None)
 
   :: Language binding context
-  :let binding_ctx: CPointer(None).null
+  :let binding_ctx CPointer(None)
 
   :: Callback to free ctx
-  :let ctx_free: CPointer(None).null
+  :let ctx_free CPointer(None)
 
   :: Callback to free binding_ctx
-  :let binding_ctx_free: CPointer(None).null
+  :let binding_ctx_free CPointer(None)
+
+  :new (
+    @ctor = CPointer(None).null
+    @dtor = CPointer(None).null
+    @copy = CPointer(None).null
+    @move = CPointer(None).null
+    @copy_ctor = CPointer(None).null
+    @move_ctor = CPointer(None).null
+    @ctor_move_dtor = CPointer(None).null
+    @move_dtor = CPointer(None).null
+    @on_add = CPointer(None).null
+    @on_set = CPointer(None).null
+    @on_remove = CPointer(None).null
+    @ctx = CPointer(None).null
+    @binding_ctx = CPointer(None).null
+    @ctx_free = CPointer(None).null
+    @binding_ctx_free = CPointer(None).null
+  )
